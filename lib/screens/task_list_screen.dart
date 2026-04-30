@@ -12,13 +12,15 @@ class TaskListScreen extends StatefulWidget {
 }
 
 class _TaskListScreenState extends State<TaskListScreen> {
+  // List to store all tasks fetched from Back4App
   List<ParseObject> _tasks = [];
   bool _isLoading = false;
 
+  // Runs once when the screen is first displayed
   @override
   void initState() {
     super.initState();
-    _fetchTasks();
+    _fetchTasks(); // Load tasks as soon as screen opens
   }
 
   Future<void> _fetchTasks() async {
@@ -44,14 +46,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
     final response = await task.delete();
 
     if (response.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task deleted')),
-      );
-      _fetchTasks();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Task deleted')));
+      _fetchTasks(); // Refresh the list after deleting
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete task')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to delete task')));
     }
   }
 
@@ -115,80 +117,72 @@ class _TaskListScreenState extends State<TaskListScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _tasks.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.task_alt, size: 80, color: Colors.grey),
-                      SizedBox(height: 16),
-                      Text(
-                        'No tasks yet!',
-                        style: TextStyle(fontSize: 18, color: Colors.grey),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Tap + to add your first task',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.task_alt, size: 80, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'No tasks yet!',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchTasks,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(8),
-                    itemCount: _tasks.length,
-                    itemBuilder: (_, i) {
-                      final task = _tasks[i];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 6,
-                          horizontal: 8,
-                        ),
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.check_circle_outline,
-                            color: Colors.blue,
-                          ),
-                          title: Text(
-                            task.get<String>('title') ?? '',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            task.get<String>('description') ?? '',
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.edit,
-                                  color: Colors.blue,
-                                ),
-                                onPressed: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => EditTaskScreen(task: task),
-                                    ),
-                                  );
-                                  _fetchTasks();
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () => _confirmDelete(task.objectId!),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                  SizedBox(height: 8),
+                  Text(
+                    'Tap + to add your first task',
+                    style: TextStyle(color: Colors.grey),
                   ),
-                ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchTasks,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: _tasks.length,
+                itemBuilder: (_, i) {
+                  final task = _tasks[i];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 6,
+                      horizontal: 8,
+                    ),
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.check_circle_outline,
+                        color: Colors.blue,
+                      ),
+                      title: Text(
+                        task.get<String>('title') ?? '',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(task.get<String>('description') ?? ''),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditTaskScreen(task: task),
+                                ),
+                              );
+                              _fetchTasks();
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _confirmDelete(task.objectId!),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

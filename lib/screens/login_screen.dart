@@ -6,6 +6,7 @@ import 'task_list_screen.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
+  // This connects the widget (LoginScreen) to its state (_LoginScreenState)
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
+      // Show a snackbar (popup message at bottom of screen)
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
@@ -55,10 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Task Manager'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Task Manager'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

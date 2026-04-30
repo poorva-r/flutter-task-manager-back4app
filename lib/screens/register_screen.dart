@@ -38,11 +38,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.error?.message ?? 'Registration failed')),
+        SnackBar(
+          content: Text(response.error?.message ?? 'Registration failed'),
+        ),
       );
     }
   }
 
+  // Dispose controllers to prevent memory leaks
   @override
   void dispose() {
     _emailController.dispose();
@@ -53,10 +56,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Register'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

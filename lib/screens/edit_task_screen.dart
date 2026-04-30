@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 
 class EditTaskScreen extends StatefulWidget {
+  // This screen receives the existing task from TaskListScreen
   final ParseObject task;
   const EditTaskScreen({super.key, required this.task});
 
@@ -53,7 +54,9 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.error?.message ?? 'Failed to update task')),
+        SnackBar(
+          content: Text(response.error?.message ?? 'Failed to update task'),
+        ),
       );
     }
   }
@@ -68,10 +71,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Task'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Edit Task'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

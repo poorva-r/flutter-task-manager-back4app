@@ -37,13 +37,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     setState(() => _isLoading = false);
 
     if (response.success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Task added successfully!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Task added successfully!')));
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.error?.message ?? 'Failed to add task')),
+        SnackBar(
+          content: Text(response.error?.message ?? 'Failed to add task'),
+        ),
       );
     }
   }
@@ -58,10 +60,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add Task'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('Add Task'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
