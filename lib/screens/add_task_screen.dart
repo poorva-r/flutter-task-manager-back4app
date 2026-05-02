@@ -11,10 +11,7 @@ class AddTaskScreen extends StatefulWidget {
 class _AddTaskScreenState extends State<AddTaskScreen> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  String _selectedStatus = 'Todo';
   bool _isLoading = false;
-
-  final List<String> _statuses = ['Todo', 'In Progress', 'Done'];
 
   Future<void> _addTask() async {
     final title = _titleController.text.trim();
@@ -28,28 +25,23 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     }
 
     setState(() => _isLoading = true);
-
     final user = await ParseUser.currentUser() as ParseUser;
     final task = ParseObject('Task')
       ..set('title', title)
       ..set('description', description)
-      ..set('status', _selectedStatus)
+      ..set('isCompleted', false)
       ..set('user_id', user);
 
     final response = await task.save();
-
     setState(() => _isLoading = false);
 
     if (response.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Task added successfully!')));
       Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(response.error?.message ?? 'Failed to add task'),
-        ),
+            content:
+                Text(response.error?.message ?? 'Failed to add task')),
       );
     }
   }
@@ -68,7 +60,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
             TextField(
@@ -87,44 +78,17 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
               ),
               maxLines: 4,
             ),
-            const SizedBox(height: 16),
-            // Status dropdown
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1E2A),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedStatus,
-                  isExpanded: true,
-                  dropdownColor: const Color(0xFF1E1E2A),
-                  items: _statuses.map((status) {
-                    return DropdownMenuItem(
-                      value: status,
-                      child: Text(
-                        status,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (val) =>
-                      setState(() => _selectedStatus = val ?? 'Todo'),
-                ),
-              ),
-            ),
             const SizedBox(height: 24),
             _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF7C5CBF)),
-                  )
+                ? const CircularProgressIndicator(
+                    color: Color(0xFF7C5CBF))
                 : SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _addTask,
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 16),
                       ),
                       child: const Text(
                         'Launch Task',

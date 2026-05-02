@@ -16,30 +16,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   List<ParseObject> _tasks = [];
   bool _isLoading = false;
 
-  // Status colors and icons
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'In Progress':
-        return const Color(0xFF5B8CFF);
-      case 'Done':
-        return const Color(0xFF4CAF50);
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _statusIcon(String status) {
-    switch (status) {
-      case 'In Progress':
-        return Icons.timelapse_rounded;
-      case 'Done':
-        return Icons.check_circle_rounded;
-      default:
-        return Icons.radio_button_unchecked_rounded;
-    }
-  }
-
-  // Runs once when the screen is first displayed
+  // Runs once when the screen is first displayed  
   @override
   void initState() {
     super.initState();
@@ -48,14 +25,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   Future<void> _fetchTasks() async {
     setState(() => _isLoading = true);
-
     final user = await ParseUser.currentUser() as ParseUser;
     final query = QueryBuilder<ParseObject>(ParseObject('Task'))
       ..whereEqualTo('user_id', user)
+      ..orderByAscending('isCompleted') // incomplete tasks first
       ..orderByDescending('createdAt');
-
     final response = await query.query();
-
     setState(() {
       _tasks = response.success && response.results != null
           ? response.results as List<ParseObject>
@@ -64,39 +39,27 @@ class _TaskListScreenState extends State<TaskListScreen> {
     });
   }
 
+  Future<void> _toggleComplete(ParseObject task) async {
+    final current = task.get<bool>('isCompleted') ?? false;
+    task.set('isCompleted', !current);
+    await task.save();
+    _fetchTasks();
+  }
+
   Future<void> _deleteTask(String objectId) async {
     final task = ParseObject('Task')..objectId = objectId;
     final response = await task.delete();
-
     if (response.success) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Task deleted')));
-      _fetchTasks(); // Refresh the list after deleting
-    } else {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Failed to delete task')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Task removed from orbit')),
+      );
+      _fetchTasks();
     }
-  }
-
-  // Tap status chip to cycle through statuses
-  Future<void> _cycleStatus(ParseObject task) async {
-    final current = task.get<String>('status') ?? 'Todo';
-    final next = current == 'Todo'
-        ? 'In Progress'
-        : current == 'In Progress'
-        ? 'Done'
-        : 'Todo';
-    task.set('status', next);
-    await task.save();
-    _fetchTasks();
   }
 
   Future<void> _logout() async {
     final user = await ParseUser.currentUser() as ParseUser;
     await user.logout();
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -107,12 +70,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF13131A),
         title: const Text('Delete Task'),
-        content: const Text('Are you sure you want to delete this task?'),
+        content: const Text('Remove this task from orbit?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
           ),
           TextButton(
             onPressed: () {
@@ -125,6 +89,10 @@ class _TaskListScreenState extends State<TaskListScreen> {
       ),
     );
   }
+
+  // Count completed tasks for progress bar
+  int get _completedCount =>
+      _tasks.where((t) => t.get<bool>('isCompleted') == true).length;
 
   @override
   Widget build(BuildContext context) {
@@ -152,152 +120,204 @@ class _TaskListScreenState extends State<TaskListScreen> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C5CBF)),
-            )
+              child: CircularProgressIndicator(color: Color(0xFF7C5CBF)))
           : _tasks.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.hub_rounded,
-                    size: 80,
-                    color: Colors.grey.shade800,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No tasks in orbit yet!',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Tap + to launch your first task',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            )
-          : RefreshIndicator(
-              onRefresh: _fetchTasks,
-              color: const Color(0xFF7C5CBF),
-              child: ListView.builder(
-                padding: const EdgeInsets.all(12),
-                itemCount: _tasks.length,
-                itemBuilder: (_, i) {
-                  final task = _tasks[i];
-                  final status = task.get<String>('status') ?? 'Todo';
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF13131A),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: _statusColor(status).withOpacity(0.3),
-                        width: 1,
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.hub_rounded,
+                          size: 80, color: Colors.grey.shade800),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No tasks in orbit yet!',
+                        style: TextStyle(fontSize: 18, color: Colors.grey),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Tap + to launch your first task',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: [
+                    // Progress bar at top
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // Status chip — tap to cycle
-                              GestureDetector(
-                                onTap: () => _cycleStatus(task),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: _statusColor(
-                                      status,
-                                    ).withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: _statusColor(
-                                        status,
-                                      ).withOpacity(0.5),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        _statusIcon(status),
-                                        size: 12,
-                                        color: _statusColor(status),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        status,
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: _statusColor(status),
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              Text(
+                                '$_completedCount of ${_tasks.length} completed',
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const Spacer(),
-                              // Edit button
-                              GestureDetector(
-                                onTap: () async {
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          EditTaskScreen(task: task),
-                                    ),
-                                  );
-                                  _fetchTasks();
-                                },
-                                child: const Icon(
-                                  Icons.edit_outlined,
-                                  color: Color(0xFF5B8CFF),
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              // Delete button
-                              GestureDetector(
-                                onTap: () => _confirmDelete(task.objectId!),
-                                child: const Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.redAccent,
-                                  size: 20,
+                              Text(
+                                _tasks.isEmpty
+                                    ? '0%'
+                                    : '${((_completedCount / _tasks.length) * 100).toInt()}%',
+                                style: const TextStyle(
+                                  color: Color(0xFF7C5CBF),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            task.get<String>('title') ?? '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            task.get<String>('description') ?? '',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey.shade500,
+                          const SizedBox(height: 8),
+                          // Progress bar
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: _tasks.isEmpty
+                                  ? 0
+                                  : _completedCount / _tasks.length,
+                              backgroundColor: const Color(0xFF1E1E2A),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                Color(0xFF7C5CBF),
+                              ),
+                              minHeight: 6,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
+                    // Task list
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: _fetchTasks,
+                        color: const Color(0xFF7C5CBF),
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(12),
+                          itemCount: _tasks.length,
+                          itemBuilder: (_, i) {
+                            final task = _tasks[i];
+                            final isCompleted =
+                                task.get<bool>('isCompleted') ?? false;
+
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 10),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF13131A),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isCompleted
+                                      ? const Color(0xFF4CAF50).withOpacity(0.3)
+                                      : const Color(0xFF7C5CBF).withOpacity(0.15),
+                                  width: 1,
+                                ),
+                              ),
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                // Checkbox on left
+                                leading: GestureDetector(
+                                  onTap: () => _toggleComplete(task),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 26,
+                                    height: 26,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: isCompleted
+                                          ? const Color(0xFF4CAF50)
+                                          : Colors.transparent,
+                                      border: Border.all(
+                                        color: isCompleted
+                                            ? const Color(0xFF4CAF50)
+                                            : Colors.grey.shade600,
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: isCompleted
+                                        ? const Icon(Icons.check,
+                                            size: 16, color: Colors.white)
+                                        : null,
+                                  ),
+                                ),
+                                // Title and description
+                                title: Text(
+                                  task.get<String>('title') ?? '',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                    color: isCompleted
+                                        ? Colors.grey.shade600
+                                        : Colors.white,
+                                    // Strikethrough when completed
+                                    decoration: isCompleted
+                                        ? TextDecoration.lineThrough
+                                        : TextDecoration.none,
+                                    decorationColor: Colors.grey.shade600,
+                                  ),
+                                ),
+                                subtitle: Padding(
+                                  padding: const EdgeInsets.only(top: 4),
+                                  child: Text(
+                                    task.get<String>('description') ?? '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isCompleted
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade500,
+                                      decoration: isCompleted
+                                          ? TextDecoration.lineThrough
+                                          : TextDecoration.none,
+                                      decorationColor: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                // Edit and delete on right
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (!isCompleted)
+                                      GestureDetector(
+                                        onTap: () async {
+                                          await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) =>
+                                                  EditTaskScreen(task: task),
+                                            ),
+                                          );
+                                          _fetchTasks();
+                                        },
+                                        child: const Icon(
+                                          Icons.edit_outlined,
+                                          color: Color(0xFF5B8CFF),
+                                          size: 20,
+                                        ),
+                                      ),
+                                    const SizedBox(width: 12),
+                                    GestureDetector(
+                                      onTap: () =>
+                                          _confirmDelete(task.objectId!),
+                                      child: const Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.redAccent,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
     );
   }
 }
