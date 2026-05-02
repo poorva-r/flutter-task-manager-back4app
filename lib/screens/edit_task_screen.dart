@@ -13,7 +13,10 @@ class EditTaskScreen extends StatefulWidget {
 class _EditTaskScreenState extends State<EditTaskScreen> {
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
+  late String _selectedStatus;
   bool _isLoading = false;
+
+  final List<String> _statuses = ['Todo', 'In Progress', 'Done'];
 
   @override
   void initState() {
@@ -24,6 +27,7 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
     _descriptionController = TextEditingController(
       text: widget.task.get<String>('description'),
     );
+    _selectedStatus = widget.task.get<String>('status') ?? 'Todo';
   }
 
   Future<void> _updateTask() async {
@@ -41,7 +45,8 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
 
     widget.task
       ..set('title', title)
-      ..set('description', description);
+      ..set('description', description)
+      ..set('status', _selectedStatus);
 
     final response = await widget.task.save();
 
@@ -71,17 +76,17 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Task'), centerTitle: true),
+      appBar: AppBar(title: const Text('Edit Task')),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
             TextField(
               controller: _titleController,
               decoration: const InputDecoration(
                 labelText: 'Task Title',
-                border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.title),
               ),
             ),
@@ -90,14 +95,42 @@ class _EditTaskScreenState extends State<EditTaskScreen> {
               controller: _descriptionController,
               decoration: const InputDecoration(
                 labelText: 'Description',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
+                prefixIcon: Icon(Icons.description_outlined),
               ),
               maxLines: 4,
             ),
+            const SizedBox(height: 16),
+            // Status dropdown
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E2A),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedStatus,
+                  isExpanded: true,
+                  dropdownColor: const Color(0xFF1E1E2A),
+                  items: _statuses.map((status) {
+                    return DropdownMenuItem(
+                      value: status,
+                      child: Text(
+                        status,
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (val) =>
+                      setState(() => _selectedStatus = val ?? 'Todo'),
+                ),
+              ),
+            ),
             const SizedBox(height: 24),
             _isLoading
-                ? const CircularProgressIndicator()
+                ? const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF7C5CBF)),
+                  )
                 : SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
