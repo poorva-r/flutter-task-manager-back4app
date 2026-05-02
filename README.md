@@ -1,64 +1,112 @@
-# Flutter Task Manager App 📝
+# Orbit — Task Manager App
 
-A Flutter-based Task Manager application built with Back4App (Backend as a Service).
-This app demonstrates full CRUD operations with user authentication using Parse Server.
+A Flutter-based task manager application built with Back4App as a Backend-as-a-Service (BaaS). Orbit allows users to register, log in, and manage their tasks through a clean dark-themed interface with no custom backend required.
 
-## 📱 Screenshots
+This project was built as part of the course Cross Platform Application Development (SE ZG585) at BITS Pilani (WILP).
 
-## ✨ Features
+## Demo Video
 
-- 🔐 User Registration & Login using student email
-- ✅ Create tasks with title and description
-- 📋 Read and view all your tasks in real time
-- ✏️ Update/Edit existing tasks
-- 🗑️ Delete tasks with confirmation dialog
-- 🔄 Real-time sync with Back4App cloud database
-- 🚪 Secure logout with session invalidation
+[Link Here](YOUTUBE_LINK_HERE)
 
-## 🛠️ Technology Stack
+## Screenshots
+
+### Login
+![Login](screenshots/login.png)
+
+### Register
+![Register](screenshots/register.png)
+
+### Task List
+![Task List](screenshots/tasks.png)
+
+### Add Task
+![Add Task](screenshots/add_task.png)
+
+### Completed Tasks
+![Completed Tasks](screenshots/completed.png)
+
+## Features
+
+- User registration and login using email
+- Create tasks with a title and description
+- View all tasks fetched in real time from the cloud
+- Edit existing tasks
+- Delete tasks with a confirmation dialog
+- Mark tasks as complete with a checkbox — completed tasks show a strikethrough and move to the bottom
+- Progress bar showing how many tasks are completed
+- Secure logout with session invalidation
+- Dark themed UI
+
+## Technology Stack
 
 | Technology | Purpose |
 |---|---|
-| Flutter & Dart | Frontend mobile app |
-| Back4App | Backend as a Service (BaaS) |
-| Parse Server | Database & Authentication |
-| GitHub | Version Control |
+| Flutter and Dart | Frontend mobile application |
+| Back4App | Backend as a Service (BaaS) - database and user authentication |
+| GitHub | Version control |
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 lib/
-├── main.dart                 → App entry point & Parse initialization
+├── main.dart                 — App entry point and Parse initialization
 └── screens/
-    ├── login_screen.dart     → User login
-    ├── register_screen.dart  → User registration
-    ├── task_list_screen.dart → View, delete & logout
-    ├── add_task_screen.dart  → Create new task
-    └── edit_task_screen.dart → Update existing task
+    ├── login_screen.dart     — User login
+    ├── register_screen.dart  — User registration
+    ├── task_list_screen.dart — Task list with complete, edit, delete and logout
+    ├── add_task_screen.dart  — Create a new task
+    └── edit_task_screen.dart — Edit an existing task
 ```
 
-## 🚀 Getting Started
+## Database Structure
+
+### Task Class
+
+| Column | Type | Description |
+|---|---|---|
+| objectId | String | Auto-generated unique ID |
+| title | String | Task title |
+| description | String | Task description |
+| isCompleted | Boolean | Whether the task is checked off |
+| user_id | Pointer to _User | Links task to its owner |
+| createdAt | DateTime | Auto-generated timestamp |
+
+### _User Class (built-in to Back4App)
+
+| Column | Type | Description |
+|---|---|---|
+| objectId | String | Auto-generated unique ID |
+| username | String | Student email used as username |
+| email | String | Student email address |
+| password | String | Encrypted by Parse automatically |
+
+## Getting Started
 
 ### Prerequisites
-- Flutter SDK installed
+
+- Flutter SDK
 - Android Studio (for Android SDK)
 - Back4App account
-- VS Code
 
 ### Installation
 
 1. Clone the repository
+
 ```bash
-git clone https://github.com/YOUR_USERNAME/flutter-task-manager-back4app.git
+git clone https://github.com/poorva-r/flutter-task-manager-back4app.git
 cd flutter-task-manager-back4app
 ```
 
 2. Install dependencies
+
 ```bash
 flutter pub get
 ```
 
-3. Configure Back4App credentials in `lib/main.dart`
+3. Add your Back4App credentials
+
+If running on Chrome, add them directly in `lib/main.dart`:
+
 ```dart
 await Parse().initialize(
   'YOUR_APPLICATION_ID',
@@ -68,44 +116,23 @@ await Parse().initialize(
 );
 ```
 
+If running on Android, create a `.env` file in the project root:
+
+```
+APP_ID=your_application_id
+CLIENT_KEY=your_client_key
+```
+
 4. Run the app
+
 ```bash
 flutter run
 ```
 
-## 🗄️ Back4App Database Structure
+## Details
 
-### Task Class
-| Column | Type | Description |
-|---|---|---|
-| objectId | String | Auto-generated unique ID |
-| title | String | Task title |
-| description | String | Task description |
-| user_id | Pointer to _User | Owner of the task |
-| createdAt | DateTime | Auto-generated timestamp |
-| updatedAt | DateTime | Auto-generated timestamp |
-
-### _User Class (built-in)
-| Column | Type | Description |
-|---|---|---|
-| objectId | String | Auto-generated unique ID |
-| username | String | Student email |
-| email | String | Student email |
-| password | String | Encrypted password |
-
-## 📋 CRUD Operations
-
-| Operation | Screen | Description |
-|---|---|---|
-| Create | Add Task Screen | Add new task to cloud database |
-| Read | Task List Screen | Fetch and display all user tasks |
-| Update | Edit Task Screen | Modify existing task |
-| Delete | Task List Screen | Remove task with confirmation |
-
-## 🔐 Security Note
-
-> In production, API keys should be stored in a `.env` file and never committed to GitHub.
-> For this demo project, keys are stored in `main.dart` for simplicity.
-
-## 📹 Demo Video
-
+- Name: Poorva Ramnani
+- Student ID: 2025TM93093
+- Email: 2025tm93093@wilp.bits-pilani.ac.in
+- Course: Cross Platform Application Development - SE ZG585
+- Institution: BITS Pilani (WILP)
