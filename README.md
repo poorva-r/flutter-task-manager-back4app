@@ -1,4 +1,4 @@
-# Orbit — Task Manager App
+# Orbit - Task Manager App
 
 A Flutter-based task manager application built with Back4App as a Backend-as-a-Service (BaaS). Orbit allows users to register, log in, and manage their tasks through a clean dark-themed interface with no custom backend required.
 
@@ -6,24 +6,11 @@ This project was built as part of the course Cross Platform Application Developm
 
 ## Demo Video
 
-[Link Here](YOUTUBE_LINK_HERE)
+[Video Link](https://youtube.com/shorts/TLLH-0hnnEo?si=t263rL3iJreXqHXT)
 
 ## Screenshots
 
-### Login
-![Login](screenshots/login.png)
-
-### Register
-![Register](screenshots/register.png)
-
-### Task List
-![Task List](screenshots/tasks.png)
-
-### Add Task
-![Add Task](screenshots/add_task.png)
-
-### Completed Tasks
-![Completed Tasks](screenshots/completed.png)
+<img width="1498" height="752" alt="image" src="https://github.com/user-attachments/assets/c9c5a0c1-949a-4369-b81b-130073b35497" />
 
 ## Features
 
