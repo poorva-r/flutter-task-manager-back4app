@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:parse_server_sdk_flutter/parse_server_sdk_flutter.dart';
 import 'screens/login_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  await dotenv.load(fileName: ".env");
+
   // Initialize the Parse/Back4App connection
   await Parse().initialize(
-    'VluLQJAY9kdrSDGTafXJ9wSfbiXvXpIufDnu1Z72',
+    dotenv.env['APP_ID']!,
     'https://parseapi.back4app.com',
-    clientKey: 'E8iVyXYUv2BxTvN8noXmroYa9JqJcfP84K750K7M',
+    clientKey: dotenv.env['CLIENT_KEY']!,
     autoSendSessionId:
         true, // auto send session token with every request - keeps user logged in
     debug: true,
